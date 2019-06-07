@@ -1,20 +1,24 @@
 package spt.webview;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.webkit.SslErrorHandler;
-import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import spt.webview.tools.InterceptTools;
 
 /**
  * Created by YangJ on 2019/3/24.
@@ -86,12 +90,6 @@ public class WrapWebView extends WebView {
      */
     protected boolean isGoBack() {
         int currentIndex = copyBackForwardList().getCurrentIndex();
-        Log.i(TAG, "isGoBack: currentIndex = " + currentIndex);
-        WebBackForwardList list = copyBackForwardList();
-        int size = list.getSize();
-        for (int i = 0; i < size; i++) {
-            Log.i(TAG, "isGoBack: " + i + " : " + list.getItemAtIndex(i).getUrl());
-        }
         boolean isGoBack = false;
         if (currentIndex >= 2) {
             isGoBack = true;
@@ -128,6 +126,56 @@ public class WrapWebView extends WebView {
             if (mWebViewClient != null) {
                 mWebViewClient.onLoadResource(view, url);
             }
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (mWebViewClient != null) {
+                mWebViewClient.shouldOverrideUrlLoading(view, url);
+            }
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.N)
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            if (mWebViewClient != null) {
+                mWebViewClient.shouldOverrideUrlLoading(view, request);
+            }
+            return super.shouldOverrideUrlLoading(view, request);
+        }
+
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            if (mWebViewClient != null) {
+                mWebViewClient.shouldInterceptRequest(view, url);
+            }
+            Log.i(TAG, "shouldInterceptRequest: url = " + url);
+            WebResourceResponse response = super.shouldInterceptRequest(view, url);
+            InterceptTools tools = InterceptTools.getInstance();
+            if (tools.isExist(url)) {
+                response = tools.getWebResourceResponse(mContext.getAssets(), url);
+            }
+            Log.i(TAG, "shouldInterceptRequest: response = " + response);
+            return response;
+        }
+
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            if (mWebViewClient != null) {
+                mWebViewClient.shouldInterceptRequest(view, request);
+            }
+            Log.d(TAG, "shouldInterceptRequest: request = " + request);
+            Uri uri = request.getUrl();
+            String url = uri.getPath();
+            WebResourceResponse response = super.shouldInterceptRequest(view, request);
+            InterceptTools tools = InterceptTools.getInstance();
+            if (tools.isExist(url)) {
+                response = tools.getWebResourceResponse(mContext.getAssets(), url);
+            }
+            Log.d(TAG, "shouldInterceptRequest: response = " + response);
+            return response;
         }
 
         @Override

@@ -17,6 +17,9 @@ import spt.webview.tools.WebViewTools;
  */
 public class MainActivity extends AppCompatActivity {
 
+    // TAG
+    private static final String TAG = "MainActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,8 +28,15 @@ public class MainActivity extends AppCompatActivity {
         initView();
     }
 
+    @Override
+    protected void onDestroy() {
+        // 结束WebView进程
+        WebViewTools.stopProcess(this);
+        super.onDestroy();
+    }
+
     private void initData() {
-        WebViewTools.startProcess(this);
+
     }
 
     private void initView() {
@@ -56,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         list.add("https://www.taobao.com");
         list.add("https://www.bilibili.com/");
         list.add("https://flutterchina.club/");
+        list.add("http://192.168.1.3:8080/Atlanta/index.html");
         return list;
     }
 

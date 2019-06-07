@@ -13,6 +13,12 @@ import java.util.List;
  */
 public class ProcessUtils {
 
+    /**
+     * 获取进程名称
+     *
+     * @param context 参数为当前上下文对象
+     * @return 返回当前进程名称
+     */
     public static String getAppProcess(Context context) {
         int currentPid = android.os.Process.myPid();
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);

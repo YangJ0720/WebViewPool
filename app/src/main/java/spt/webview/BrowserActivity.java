@@ -3,7 +3,6 @@ package spt.webview;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,11 +10,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
@@ -66,18 +61,13 @@ public class BrowserActivity extends AppCompatActivity {
         }
         mWebView = WebViewTools.getInstance().getWebView(mUrl);
         //
-        System.out.println("mWebView = " + mWebView);
+        Log.i(TAG, "mWebView = " + mWebView);
         Toast.makeText(this, "mWebView = " + mWebView, Toast.LENGTH_LONG).show();
         //
         mWebView.setWebViewClient(new WebViewClient() {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                WebSettings settings = mWebView.getSettings();
-                if (!settings.getBlockNetworkImage()) {
-                    // 设置WebView是否阻塞从网络中加载图像资源（通过http和https URI方案访问的资源）
-                    settings.setBlockNetworkImage(true);
-                }
                 super.onPageStarted(view, url, favicon);
                 if (mProgressBar.getVisibility() != View.VISIBLE) {
                     mProgressBar.setVisibility(View.VISIBLE);
@@ -86,31 +76,12 @@ public class BrowserActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                super.onReceivedError(view, request, error);
-                Log.e(TAG, "onReceivedError");
-            }
-
-            @Override
-            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                super.onReceivedSslError(view, handler, error);
-                Log.e(TAG, "onReceivedSslError");
-            }
-
-            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                WebSettings settings = mWebView.getSettings();
-                // 如果设置了阻塞加载图片，就解除阻塞
-                if (settings.getBlockNetworkImage()) {
-                    // 设置允许加载图片
-                    settings.setBlockNetworkImage(false);
-                }
                 Log.i(TAG, "onPageFinished: " + url);
             }
         });
         mWebView.setWebChromeClient(new WebChromeClient() {
-
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
@@ -141,8 +112,8 @@ public class BrowserActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        WebViewTools.getInstance().removeWebView(mWebView);
         super.onDestroy();
-        WebViewTools.getInstance().removeWebView(mViewGroup, mWebView);
     }
 
     @Override

@@ -16,6 +16,9 @@ import spt.webview.pool.WebViewPool;
  */
 public class WebViewTools {
 
+    private static final String ACTION_START_WEB = "spt.webview.web.start.action";
+    private static final String ACTION_STOP_WEB = "spt.webview.web.stop.action";
+
     // WebView缓存池
     private WebViewPool<String, WrapWebView> mPool;
 
@@ -37,7 +40,17 @@ public class WebViewTools {
      * @param context 参数为当前上下文对象
      */
     public static void startProcess(Context context) {
-        Intent intent = new Intent("spt.webview.web.action");
+        Intent intent = new Intent(ACTION_START_WEB);
+        context.sendBroadcast(intent);
+    }
+
+    /**
+     * 结束WebView进程
+     *
+     * @param context 参数为当前上下文对象
+     */
+    public static void stopProcess(Context context) {
+        Intent intent = new Intent(ACTION_STOP_WEB);
         context.sendBroadcast(intent);
     }
 
@@ -67,11 +80,12 @@ public class WebViewTools {
      * @param webView 参数为WebView对象
      */
     public void removeWebView(WebView webView) {
+        webView.stopLoading();
         ViewGroup viewGroup = (ViewGroup) webView.getParent();
         if (viewGroup != null) {
             viewGroup.removeView(webView);
         }
-        webView.stopLoading();
+        webView.removeAllViews();
         webView.setWebViewClient(null);
         webView.setWebChromeClient(null);
     }
